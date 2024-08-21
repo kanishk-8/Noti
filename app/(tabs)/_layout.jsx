@@ -65,11 +65,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="todotab"
         options={{
-          tabBarLabel: "Profile",
+          tabBarLabel: "Todo",
           tabBarIcon: ({ color }) => (
-            <Ionicons name="person-outline" size={24} color={color} />
+            <Ionicons name="checkbox-outline" size={24} color={color} />
           ),
         }}
       />

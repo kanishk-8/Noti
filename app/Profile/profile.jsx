@@ -13,6 +13,7 @@ import { auth } from "../../configs/FirebaseConfigs";
 import { onAuthStateChanged } from "firebase/auth";
 import { Colors } from "../../constants/Colors";
 import CustomModal from "../../components/modal";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function Profile() {
   const router = useRouter();
@@ -60,7 +61,13 @@ export default function Profile() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Profile</Text>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back-sharp" size={24} color="black" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Profile Section</Text>
+      </View>
+
       <View style={styles.profileSection}>
         {user?.photoURL ? (
           <Image source={{ uri: user.photoURL }} style={styles.profileImage} />
@@ -117,12 +124,20 @@ const styles = StyleSheet.create({
     height: "100%",
     alignItems: "center",
   },
-  title: {
-    color: Colors.PRIMARY,
-    fontFamily: "outfit-SemiBold",
-    fontSize: 30,
-    marginBottom: 20,
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 30,
+    paddingHorizontal: 20,
+    width: "100%",
   },
+  headerTitle: {
+    color: "black",
+    fontFamily: "outfit-SemiBold",
+    fontSize: 20,
+  },
+
   profileSection: {
     justifyContent: "center",
     alignItems: "center",
@@ -166,17 +181,17 @@ const styles = StyleSheet.create({
   },
   signOutButton: {
     padding: 10,
-    marginTop: 20,
+    marginTop: 10,
     borderRadius: 15,
     borderWidth: 1,
     borderColor: "red",
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    backgroundColor: "red",
+    // backgroundColor: "red",
   },
   signOutButtonText: {
-    color: "white",
+    color: "red",
     fontSize: 20,
     fontFamily: "outfit-semibold",
   },
