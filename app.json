@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "mobile_app",
-    "slug": "mobile_app",
+    "slug": "firstapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -31,6 +31,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "4ee52b87-0410-4b2c-9c24-e4df8f40262f"
+      }
+    },
+    "owner": "kanishk8"
   }
 }
