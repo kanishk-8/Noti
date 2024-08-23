@@ -3,6 +3,7 @@ import Landingpage from "../components/Landingpage";
 import { auth } from "../configs/FirebaseConfigs";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
+import ScreenWrapper from "../components/screenwrapper";
 
 export default function Index() {
   const [loading, setLoading] = useState(true);
@@ -36,8 +37,10 @@ export default function Index() {
 
   // Show the Landingpage if the user is not authenticated
   return (
-    <View style={{ flex: 1 }}>
-      <Landingpage />
-    </View>
+    <ScreenWrapper>
+      <View style={{ flex: 1 }}>
+        <Landingpage />
+      </View>
+    </ScreenWrapper>
   );
 }

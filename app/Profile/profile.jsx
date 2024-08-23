@@ -14,6 +14,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { Colors } from "../../constants/Colors";
 import CustomModal from "../../components/modal";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import ScreenWrapper from "../../components/screenwrapper";
 
 export default function Profile() {
   const router = useRouter();
@@ -60,66 +61,73 @@ export default function Profile() {
   const user = auth.currentUser;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back-sharp" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile Section</Text>
-      </View>
+    <ScreenWrapper>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back-sharp" size={24} color="black" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Profile Section</Text>
+        </View>
 
-      <View style={styles.profileSection}>
-        {user?.photoURL ? (
-          <Image source={{ uri: user.photoURL }} style={styles.profileImage} />
-        ) : (
-          <Image
-            source={require("../../assets/images/user.png")}
-            style={styles.profileImage}
-          />
-        )}
-        <Text style={styles.userName}>{user?.displayName}</Text>
-        <Text style={styles.userEmail}>Email: {user?.email}</Text>
-      </View>
+        <View style={styles.profileSection}>
+          {user?.photoURL ? (
+            <Image
+              source={{ uri: user.photoURL }}
+              style={styles.profileImage}
+            />
+          ) : (
+            <Image
+              source={require("../../assets/images/user.png")}
+              style={styles.profileImage}
+            />
+          )}
+          <Text style={styles.userName}>{user?.displayName}</Text>
+          <Text style={styles.userEmail}>Email: {user?.email}</Text>
+        </View>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push("/Profile/Account")}
-        >
-          <Text style={styles.buttonText}>Edit Account</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push("/Profile/Setting")}
-        >
-          <Text style={styles.buttonText}>Setting</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push("/Profile/Help")}
-        >
-          <Text style={styles.buttonText}>Help</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Text style={styles.signOutButtonText}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.push("/Profile/Account")}
+          >
+            <Text style={styles.buttonText}>Edit Account</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.push("/Profile/Setting")}
+          >
+            <Text style={styles.buttonText}>Setting</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.push("/Profile/Help")}
+          >
+            <Text style={styles.buttonText}>Help</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.signOutButton}
+            onPress={handleSignOut}
+          >
+            <Text style={styles.signOutButtonText}>Sign Out</Text>
+          </TouchableOpacity>
+        </View>
 
-      {/* Custom Modal */}
-      <CustomModal
-        visible={showModal}
-        message={modalMessage}
-        onConfirm={handleModalConfirm}
-        onClose={handleModalCancel}
-      />
-    </View>
+        {/* Custom Modal */}
+        <CustomModal
+          visible={showModal}
+          message={modalMessage}
+          onConfirm={handleModalConfirm}
+          onClose={handleModalCancel}
+        />
+      </View>
+    </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: 50,
     width: "100%",
     height: "100%",
     alignItems: "center",
@@ -129,7 +137,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 30,
-    paddingHorizontal: 20,
+    padding: 20,
     width: "100%",
   },
   headerTitle: {

@@ -1,30 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
-  TextInput,
-  Modal,
   TouchableOpacity,
   Text,
   FlatList,
   StyleSheet,
   ActivityIndicator,
+  Dimensions,
+  Alert,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { db } from "../../configs/FirebaseConfigs"; // Ensure this path is correct
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { db } from "../../configs/FirebaseConfigs";
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { useRouter } from "expo-router";
+import RenderHtml from "react-native-render-html";
+import {
+  LongPressGestureHandler,
+  State,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
+import ScreenWrapper from "../../components/screenwrapper";
 
 export default function Notes() {
   const [notes, setNotes] = useState([]);
-  const [newNoteTitle, setNewNoteTitle] = useState("");
-  const [newNoteContent, setNewNoteContent] = useState("");
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  useEffect(() => {
-    fetchNotes();
-  }, []);
-
-  const fetchNotes = async () => {
+  // Fetch notes from Firestore
+  const fetchNotes = useCallback(async () => {
     try {
       const notesCollection = collection(db, "notes");
       const noteSnapshot = await getDocs(notesCollection);
@@ -38,101 +41,90 @@ export default function Notes() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const addNote = async () => {
-    if (!newNoteTitle.trim() || !newNoteContent.trim()) {
-      alert("Title and Content cannot be empty");
-      return;
-    }
+  // Fetch notes on component mount
+  useEffect(() => {
+    fetchNotes();
+  }, [fetchNotes]);
+
+  // Delete a note
+  const deleteNote = async (id) => {
     try {
-      const docRef = await addDoc(collection(db, "notes"), {
-        title: newNoteTitle,
-        content: newNoteContent,
-        createdAt: new Date(),
-      });
-      const newNote = {
-        id: docRef.id,
-        title: newNoteTitle,
-        content: newNoteContent,
-      };
-      setNotes([...notes, newNote]);
-      setNewNoteTitle("");
-      setNewNoteContent("");
-      setIsModalVisible(false);
+      await deleteDoc(doc(db, "notes", id));
+      setNotes(notes.filter((note) => note.id !== id));
     } catch (error) {
-      console.error("Error adding note:", error);
+      console.error("Error deleting note:", error);
     }
   };
 
-  const loadNote = (note) => {
-    setNewNoteTitle(note.title);
-    setNewNoteContent(note.content);
-    setIsModalVisible(true);
+  // Handle long press
+  const handleLongPress = (id) => {
+    Alert.alert("Options", "Choose an option", [
+      {
+        text: "Delete",
+        onPress: () => deleteNote(id),
+        style: "destructive",
+      },
+      { text: "Cancel", style: "cancel" },
+    ]);
   };
 
-  const renderNote = ({ item }) => (
-    <TouchableOpacity onPress={() => loadNote(item)}>
-      <View style={styles.noteContainer}>
-        <Text style={styles.noteTitle}>{item.title}</Text>
-        <Text style={styles.noteContent} numberOfLines={1}>
-          {item.content}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+  // Set content width for RenderHtml
+  const contentWidth = Dimensions.get("window").width;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Notes</Text>
-      {loading ? (
-        <ActivityIndicator size="large" color="black" />
-      ) : (
-        <FlatList
-          data={notes}
-          renderItem={renderNote}
-          keyExtractor={(item) => item.id}
-          style={styles.list}
-        />
-      )}
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => setIsModalVisible(true)}
-      >
-        <Ionicons name="add-circle-outline" size={60} color="black" />
-      </TouchableOpacity>
-
-      {/* Modal for Adding or Viewing a Note */}
-      <Modal visible={isModalVisible} animationType="slide">
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Add a New Note</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Title"
-            value={newNoteTitle}
-            onChangeText={setNewNoteTitle}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Content"
-            value={newNoteContent}
-            onChangeText={setNewNoteContent}
-            multiline
-          />
-          <View style={styles.modalButtons}>
-            <TouchableOpacity style={styles.modalButton} onPress={addNote}>
-              <Text style={styles.buttonText}>Add Note</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.cancelButton]}
-              onPress={() => setIsModalVisible(false)}
-            >
-              <Text style={styles.buttonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
+    <ScreenWrapper>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={styles.container}>
+          {loading ? (
+            <ActivityIndicator size="large" color="black" />
+          ) : (
+            <>
+              <Text style={styles.title}>Notes</Text>
+              <FlatList
+                showsVerticalScrollIndicator={false}
+                data={notes}
+                renderItem={({ item }) => (
+                  <LongPressGestureHandler
+                    onHandlerStateChange={({ nativeEvent }) => {
+                      if (nativeEvent.state === State.ACTIVE) {
+                        handleLongPress(item.id);
+                      }
+                    }}
+                  >
+                    <TouchableOpacity
+                      onPress={() =>
+                        router.push(`../notes/NotesRender?noteId=${item.id}`)
+                      }
+                    >
+                      <View style={styles.cardContainer}>
+                        <Text style={styles.noteTitle}>{item.title}</Text>
+                        <RenderHtml
+                          contentWidth={contentWidth}
+                          allowFontScaling={false}
+                          source={{ html: item.content }}
+                          contentStyle={{ color: "#333", fontSize: 14 }}
+                        />
+                      </View>
+                    </TouchableOpacity>
+                  </LongPressGestureHandler>
+                )}
+                keyExtractor={(item) => item.id}
+                style={styles.list}
+                numColumns={2}
+              />
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => router.push("../notes/NotesRender")}
+              >
+                <Ionicons name="add-circle-sharp" size={60} color="#b53740" />
+              </TouchableOpacity>
+            </>
+          )}
         </View>
-      </Modal>
-    </View>
+      </GestureHandlerRootView>
+    </ScreenWrapper>
   );
 }
 
@@ -140,70 +132,41 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    marginTop: 50,
+    marginBottom: 60,
   },
   title: {
     fontSize: 50,
     marginBottom: 10,
+    marginTop: 10,
     marginLeft: 10,
     fontFamily: "outfit-Bold",
   },
-  noteContainer: {
+  cardContainer: {
+    flex: 1,
+    margin: 5,
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    width: Dimensions.get("window").width / 2 - 20,
+    height: Dimensions.get("window").width / 2 - 20,
+    overflow: "hidden",
     padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
   },
   noteTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-  },
-  noteContent: {
-    color: "#666",
-  },
-  addButton: {
-    position: "absolute",
-    bottom: 70,
-    right: 30,
+    fontFamily: "outfit-Bold",
+    marginBottom: 5,
   },
   list: {
     marginTop: 20,
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-    backgroundColor: "#fff",
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontFamily: "outfit-Bold",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  input: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    marginBottom: 20,
-    padding: 10,
-    fontSize: 18,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  modalButton: {
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: "black",
-    width: "48%",
-    alignItems: "center",
-  },
-  cancelButton: {
-    backgroundColor: "red",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontFamily: "outfit-Bold",
+  addButton: {
+    position: "absolute",
+    bottom: 18,
+    right: 30,
   },
 });

@@ -22,6 +22,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import CustomModal from "../../components/modal";
+import ScreenWrapper from "../../components/screenwrapper";
 
 export default function Setting() {
   const [user, setUser] = useState(null);
@@ -173,76 +174,77 @@ export default function Setting() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back-sharp" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Edit Account</Text>
-      </View>
-      {emailVerified ? (
-        <View style={styles.statusContainer}>
-          <TouchableOpacity onPress={pickImage}>
-            <Image
-              source={
-                imageUri
-                  ? { uri: imageUri }
-                  : user.photoURL
-                  ? { uri: user.photoURL }
-                  : require("../../assets/images/user.png")
-              }
-              style={styles.profileImage}
+    <ScreenWrapper>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back-sharp" size={24} color="black" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Edit Account</Text>
+        </View>
+        {emailVerified ? (
+          <View style={styles.statusContainer}>
+            <TouchableOpacity onPress={pickImage}>
+              <Image
+                source={
+                  imageUri
+                    ? { uri: imageUri }
+                    : user.photoURL
+                    ? { uri: user.photoURL }
+                    : require("../../assets/images/user.png")
+                }
+                style={styles.profileImage}
+              />
+            </TouchableOpacity>
+            <TextInput
+              placeholder="Full Name"
+              style={styles.input}
+              onChangeText={(text) => setFullName(text)}
+              value={fullName}
             />
-          </TouchableOpacity>
-          <TextInput
-            placeholder="Full Name"
-            style={styles.input}
-            onChangeText={(text) => setFullName(text)}
-            value={fullName}
-          />
-          <TextInput
-            placeholder="Enter your Email"
-            style={styles.input}
-            onChangeText={(text) => setEmail(text)}
-            value={email}
-          />
+            <TextInput
+              placeholder="Enter your Email"
+              style={styles.input}
+              onChangeText={(text) => setEmail(text)}
+              value={email}
+            />
 
-          <TouchableOpacity style={styles.button} onPress={onUpdateAccount}>
-            <Text style={styles.buttonText}>Update Profile</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={styles.statusContainer}>
-          <Text style={styles.statusText}>Email Not Verified</Text>
-          <TouchableOpacity
-            style={styles.verifyButton}
-            onPress={handleSendVerification}
-            disabled={verificationSent}
-          >
-            <Text style={styles.verifyButtonText}>
-              {verificationSent ? "Verification Sent" : "Verify Email"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      <CustomModal
-        visible={showModal}
-        message={modalMessage}
-        onConfirm={handleModalConfirm}
-        onClose={handleModalCancel}
-      />
-    </View>
+            <TouchableOpacity style={styles.button} onPress={onUpdateAccount}>
+              <Text style={styles.buttonText}>Update Profile</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.statusContainer}>
+            <Text style={styles.statusText}>Email Not Verified</Text>
+            <TouchableOpacity
+              style={styles.verifyButton}
+              onPress={handleSendVerification}
+              disabled={verificationSent}
+            >
+              <Text style={styles.verifyButtonText}>
+                {verificationSent ? "Verification Sent" : "Verify Email"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        <CustomModal
+          visible={showModal}
+          message={modalMessage}
+          onConfirm={handleModalConfirm}
+          onClose={handleModalCancel}
+        />
+      </View>
+    </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: 30,
+    // marginTop: 30,
     width: "100%",
     height: "100%",
     padding: 20,
-    backgroundColor: "#f5f5f5",
   },
   header: {
     flexDirection: "row",

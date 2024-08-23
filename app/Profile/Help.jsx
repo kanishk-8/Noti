@@ -2,41 +2,41 @@ import { View, Text, TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import React from "react";
 import { router } from "expo-router";
+import ScreenWrapper from "../../components/screenwrapper";
 
 export default function Setting() {
   return (
-    <View
-      style={{
-        flex: 1,
-        // margin: 20,
-        marginTop: 30,
-        width: "100%",
-        height: "100%",
-      }}
-    >
+    <ScreenWrapper>
       <View
         style={{
-          flexDirection: "row",
-          padding: 20,
-          justifyContent: "space-between",
-          alignItems: "center",
+          width: "100%",
+          height: "100%",
         }}
       >
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back-sharp" size={24} color="black" />
-        </TouchableOpacity>
-        <Text
+        <View
           style={{
-            color: "black",
-            fontFamily: "outfit-SemiBold",
-            fontSize: 20,
-            justifyContent: "center",
+            flexDirection: "row",
+            padding: 20,
+            justifyContent: "space-between",
             alignItems: "center",
           }}
         >
-          Help Section
-        </Text>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back-sharp" size={24} color="black" />
+          </TouchableOpacity>
+          <Text
+            style={{
+              color: "black",
+              fontFamily: "outfit-SemiBold",
+              fontSize: 20,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            Help Section
+          </Text>
+        </View>
       </View>
-    </View>
+    </ScreenWrapper>
   );
 }

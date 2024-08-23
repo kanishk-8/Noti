@@ -10,6 +10,7 @@ import {
   Alert,
   StyleSheet,
 } from "react-native";
+import ScreenWrapper from "../../components/screenwrapper";
 
 export default function Todo() {
   const [notes, setNotes] = useState([]); // State for fetched notes
@@ -27,18 +28,20 @@ export default function Todo() {
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Todo</Text>
-      <FlatList
-        data={notes}
-        renderItem={renderNote}
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-      />
-      <TouchableOpacity style={styles.addButton}>
-        <Ionicons name="add-circle-outline" size={60} color={"black"} />
-      </TouchableOpacity>
-    </View>
+    <ScreenWrapper>
+      <View style={styles.container}>
+        <Text style={styles.title}>Todo</Text>
+        <FlatList
+          data={notes}
+          renderItem={renderNote}
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+        />
+        <TouchableOpacity style={styles.addButton}>
+          <Ionicons name="add-circle-sharp" size={60} color="#b53740" />
+        </TouchableOpacity>
+      </View>
+    </ScreenWrapper>
   );
 }
 
@@ -46,10 +49,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    marginTop: 50,
+    marginBottom: 60,
   },
   title: {
     fontSize: 50,
+    marginTop: 10,
     marginBottom: 10,
     marginLeft: 10,
     fontFamily: "outfit-Bold",
@@ -68,7 +72,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     position: "absolute",
-    bottom: 70,
+    bottom: 18,
     right: 30,
   },
   list: {
