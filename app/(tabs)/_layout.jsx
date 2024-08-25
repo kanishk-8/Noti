@@ -3,17 +3,23 @@ import { Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFonts } from "expo-font";
 import { BlurView } from "expo-blur";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import {
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  Touchable,
+  TouchableOpacity,
+  Vibration,
+} from "react-native";
 import {
   GestureHandlerRootView,
   LongPressGestureHandler,
   State,
+  TouchableWithoutFeedback,
 } from "react-native-gesture-handler";
+import { Colors } from "../../constants/Colors";
 
-// Example function for handling long press
-const handleLongPress = (tabName) => {
-  console.log(`Long pressed on ${tabName}`);
-};
+const vibrationPattern = 30; // Duration in milliseconds
 
 export default function TabLayout() {
   const [fontsLoaded] = useFonts({
@@ -27,99 +33,82 @@ export default function TabLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarActiveTintColor: "#b53740",
-          tabBarHideOnKeyboard: true,
-          tabBarStyle: {
-            position: "absolute",
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-            borderTopWidth: 0,
-            paddingTop: 8,
-            paddingBottom: 8,
-            height: 60,
-            overflow: "hidden",
-            backgroundColor: "transparent",
-            elevation: 0, // Remove shadow on Android
-            shadowOpacity: 0, // Remove shadow on iOS
-          },
-          tabBarBackground: () => (
-            <BlurView
-              intensity={40}
-              style={{
-                ...StyleSheet.absoluteFillObject,
-                borderTopLeftRadius: 20,
-                borderTopRightRadius: 20,
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: Colors.Themecolor,
+        tabBarHideOnKeyboard: true,
+        tabBarInactiveTintColor: Colors.dark.tint,
+        tabBarStyle: {
+          position: "absolute",
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          borderTopWidth: 0,
+          paddingTop: 8,
+          paddingBottom: 8,
+          height: 65,
+          overflow: "hidden",
+          backgroundColor: "transparent",
+          elevation: 0, // Remove shadow on Android
+          shadowOpacity: 0, // Remove shadow on iOS
+        },
+        tabBarBackground: () => (
+          <BlurView
+            intensity={30}
+            style={{
+              ...StyleSheet.absoluteFillObject,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+            }}
+          />
+        ),
+      }}
+    >
+      <Tabs.Screen
+        name="home"
+        options={{
+          tabBarLabel: "Home",
+          tabBarIcon: ({ color }) => (
+            <TouchableWithoutFeedback
+              onPress={() => {
+                Vibration.vibrate(vibrationPattern);
               }}
-            />
+            >
+              <Ionicons name="home-outline" size={28} color={color} />
+            </TouchableWithoutFeedback>
           ),
         }}
-      >
-        <Tabs.Screen
-          name="home"
-          options={{
-            tabBarLabel: "Home",
-            tabBarIcon: ({ color }) => (
-              <LongPressGestureHandler
-                onHandlerStateChange={({ nativeEvent }) => {
-                  if (nativeEvent.state === State.ACTIVE) {
-                    handleLongPress("Home");
-                  }
-                }}
-              >
-                <View>
-                  <Ionicons name="home-outline" size={24} color={color} />
-                </View>
-              </LongPressGestureHandler>
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="notestab"
-          options={{
-            tabBarLabel: "Notes",
-            tabBarIcon: ({ color }) => (
-              <LongPressGestureHandler
-                onHandlerStateChange={({ nativeEvent }) => {
-                  if (nativeEvent.state === State.ACTIVE) {
-                    handleLongPress("Notes");
-                  }
-                }}
-              >
-                <View>
-                  <Ionicons
-                    name="document-text-outline"
-                    size={24}
-                    color={color}
-                  />
-                </View>
-              </LongPressGestureHandler>
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="todotab"
-          options={{
-            tabBarLabel: "Todo",
-            tabBarIcon: ({ color }) => (
-              <LongPressGestureHandler
-                onHandlerStateChange={({ nativeEvent }) => {
-                  if (nativeEvent.state === State.ACTIVE) {
-                    handleLongPress("Todo");
-                  }
-                }}
-              >
-                <View>
-                  <Ionicons name="checkbox-outline" size={24} color={color} />
-                </View>
-              </LongPressGestureHandler>
-            ),
-          }}
-        />
-      </Tabs>
-    </GestureHandlerRootView>
+      />
+      <Tabs.Screen
+        name="notestab"
+        options={{
+          tabBarLabel: "Notes",
+          tabBarIcon: ({ color }) => (
+            <TouchableWithoutFeedback
+              onPress={() => {
+                Vibration.vibrate(vibrationPattern);
+              }}
+            >
+              <Ionicons name="document-text-outline" size={28} color={color} />
+            </TouchableWithoutFeedback>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="todotab"
+        options={{
+          tabBarLabel: "Tasks",
+          tabBarIcon: ({ color }) => (
+            <TouchableWithoutFeedback
+              onPress={() => {
+                Vibration.vibrate(vibrationPattern);
+              }}
+            >
+              <Ionicons name="checkbox-outline" size={28} color={color} />
+            </TouchableWithoutFeedback>
+          ),
+        }}
+      />
+    </Tabs>
   );
 }

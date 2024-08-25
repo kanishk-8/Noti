@@ -6,6 +6,7 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
+import { Colors } from "../constants/Colors";
 
 const ScreenWrapper = ({ children }) => {
   const { width, height } = Dimensions.get("window");
@@ -20,12 +21,13 @@ const ScreenWrapper = ({ children }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white", // Set a default background color if needed
+    backgroundColor: Colors.BACKGROUND, // Set a default background color if needed
   },
   wrapper: {
     flex: 1,
     // You can add other styles here if needed
     marginTop: Platform.OS === "android" ? 25 : 0,
+    padding: 10,
   },
 });
 

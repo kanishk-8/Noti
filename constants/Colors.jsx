@@ -17,11 +17,14 @@ export const Colors = {
   },
   dark: {
     text: "#ECEDEE",
+    content_text: "#9BA1A6",
     background: "#151718",
     tint: tintColorDark,
     icon: "#9BA1A6",
     tabIconDefault: "#9BA1A6",
-    tabIconSelected: tintColorDark,
+    tabIconSelected: "#ff0000",
   },
   PRIMARY: "#0a7ea4",
+  BACKGROUND: "#151718",
+  Themecolor: "#b53740",
 };

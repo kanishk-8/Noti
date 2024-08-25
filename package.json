@@ -41,6 +41,8 @@
     "react-native": "0.74.5",
     "react-native-config": "^1.5.3",
     "react-native-gesture-handler": "~2.16.1",
+    "react-native-htmlview": "^0.17.0",
+    "react-native-markdown-display": "^7.0.2",
     "react-native-pell-rich-editor": "^1.9.0",
     "react-native-reanimated": "~3.10.1",
     "react-native-render-html": "^6.3.4",

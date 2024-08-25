@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth } from "../../configs/FirebaseConfigs";
 import { onAuthStateChanged } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 import { Colors } from "../../constants/Colors";
 import CustomModal from "../../components/modal";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -38,19 +38,22 @@ export default function Profile() {
     setShowModal(true);
   };
 
-  const handleModalConfirm = () => {
+  const handleModalConfirm = async () => {
     setShowModal(false);
-    auth
-      .signOut()
-      .then(() => {
-        console.log("User signed out");
-        ToastAndroid.show("User signed out", ToastAndroid.SHORT);
-        router.replace("/"); // Redirect to the landing page after signing out
-      })
-      .catch((error) => {
-        console.log("Error signing out:", error);
-        ToastAndroid.show("Error signing out", ToastAndroid.SHORT);
-      });
+    try {
+      // Clear local storage
+      await AsyncStorage.clear();
+      console.log("Local storage cleared");
+
+      // Sign out
+      await auth.signOut();
+      console.log("User signed out");
+      ToastAndroid.show("User signed out", ToastAndroid.SHORT);
+      router.replace("/"); // Redirect to the landing page after signing out
+    } catch (error) {
+      console.log("Error signing out:", error);
+      ToastAndroid.show("Error signing out", ToastAndroid.SHORT);
+    }
   };
 
   const handleModalCancel = () => {
@@ -65,7 +68,11 @@ export default function Profile() {
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back-sharp" size={24} color="black" />
+            <Ionicons
+              name="arrow-back-sharp"
+              size={24}
+              color={Colors.dark.text}
+            />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Profile Section</Text>
         </View>
@@ -137,11 +144,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 30,
-    padding: 20,
+    padding: 10,
     width: "100%",
   },
   headerTitle: {
-    color: "black",
+    color: Colors.dark.text,
     fontFamily: "outfit-SemiBold",
     fontSize: 20,
   },
@@ -152,18 +159,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   profileImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 180,
+    height: 180,
+    borderRadius: 100,
   },
   userName: {
-    color: "black",
+    color: Colors.dark.text,
     fontFamily: "outfit-bold",
     fontSize: 30,
     marginTop: 10,
   },
   userEmail: {
-    color: "black",
+    color: Colors.dark.text,
     fontFamily: "outfit",
     fontSize: 18,
   },
@@ -175,15 +182,15 @@ const styles = StyleSheet.create({
   button: {
     padding: 10,
     borderRadius: 15,
-    borderColor: Colors.PRIMARY,
+    borderColor: Colors.dark.content_text,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    marginVertical: 5,
+    marginVertical: 10,
   },
   buttonText: {
-    color: Colors.PRIMARY,
+    color: Colors.dark.content_text,
     fontFamily: "outfit-SemiBold",
     fontSize: 20,
   },

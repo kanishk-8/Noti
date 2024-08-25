@@ -23,6 +23,7 @@ import * as ImagePicker from "expo-image-picker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import CustomModal from "../../components/modal";
 import ScreenWrapper from "../../components/screenwrapper";
+import { Colors } from "../../constants/Colors";
 
 export default function Setting() {
   const [user, setUser] = useState(null);
@@ -159,9 +160,15 @@ export default function Setting() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#007bff" />
-      </View>
+      <ScreenWrapper>
+        <View style={styles.container}>
+          <ActivityIndicator
+            style={styles.spinner}
+            size="large"
+            color="#007bff"
+          />
+        </View>
+      </ScreenWrapper>
     );
   }
 
@@ -178,7 +185,11 @@ export default function Setting() {
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back-sharp" size={24} color="black" />
+            <Ionicons
+              name="arrow-back-sharp"
+              size={24}
+              color={Colors.dark.text}
+            />
           </TouchableOpacity>
           <Text style={styles.title}>Edit Account</Text>
         </View>
@@ -244,7 +255,12 @@ const styles = StyleSheet.create({
     // marginTop: 30,
     width: "100%",
     height: "100%",
-    padding: 20,
+    padding: 10,
+  },
+  spinner: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
     flexDirection: "row",
@@ -252,21 +268,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   profileImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 190,
+    height: 190,
+    borderRadius: 100,
+    borderColor: Colors.dark.text,
+    borderWidth: 1,
   },
   title: {
-    color: "black",
+    color: Colors.dark.text,
     fontFamily: "outfit-SemiBold",
     fontSize: 20,
   },
   statusContainer: {
     alignItems: "center",
-    marginTop: 30,
+    marginTop: 80,
   },
   statusText: {
-    color: "black",
+    color: Colors.dark.text,
     fontFamily: "outfit-SemiBold",
     fontSize: 20,
     margin: 10,
@@ -293,12 +311,13 @@ const styles = StyleSheet.create({
   },
   button: {
     padding: 10,
-    borderRadius: 15,
+    borderRadius: 20,
     backgroundColor: "#007bff",
     alignItems: "center",
     justifyContent: "center",
     width: "90%",
     marginVertical: 20,
+    paddingVertical: 12,
   },
   buttonText: {
     color: "white",

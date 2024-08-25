@@ -17,7 +17,7 @@ export default function Setting() {
         <View
           style={{
             flexDirection: "row",
-            padding: 20,
+            padding: 10,
             justifyContent: "space-between",
             alignItems: "center",
           }}
