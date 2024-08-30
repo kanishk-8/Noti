@@ -31,7 +31,7 @@ export default function Home() {
   const [todos, setTodos] = useState([]);
   const [suggestions, setSuggestions] = useState("");
   const [loading, setLoading] = useState(true);
-  const { notes } = useNotes();
+  const { notes, fetchNotes } = useNotes();
   const user = auth.currentUser;
   const vibrationPattern = 100; // Duration in milliseconds
   const userId = auth.currentUser?.uid; // Get the currently logged-in user's ID
@@ -67,6 +67,11 @@ export default function Home() {
 
     fetchTodos();
   }, [userId]);
+
+  useEffect(() => {
+    fetchNotes();
+    console.log(notes);
+  }, [router]);
 
   useEffect(() => {
     const fetchSuggestions = async () => {

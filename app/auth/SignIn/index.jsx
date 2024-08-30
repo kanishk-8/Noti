@@ -8,11 +8,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
-import {
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
-} from "firebase/auth";
-import { auth } from "../../../configs/FirebaseConfigs";
+import auth from "@react-native-firebase/auth"; // Importing auth from react-native-firebase
 import { Colors } from "../../../constants/Colors";
 
 export default function SignIn() {
@@ -25,12 +21,12 @@ export default function SignIn() {
       ToastAndroid.show("Please fill all the fields", ToastAndroid.SHORT);
       return;
     }
-    signInWithEmailAndPassword(auth, email, password)
+    auth()
+      .signInWithEmailAndPassword(email, password) // Call signInWithEmailAndPassword directly
       .then((userCredential) => {
-        // Signed in
         const user = userCredential.user;
         console.log("user", user);
-        router.replace("/home");
+        router.replace("/home"); // Navigate to the home page
       })
       .catch((error) => {
         const errorCode = error.code;
@@ -38,8 +34,8 @@ export default function SignIn() {
         console.log(errorCode, errorMessage);
         if (errorCode === "auth/invalid-email") {
           ToastAndroid.show("Invalid email", ToastAndroid.SHORT);
-        } else if (errorCode === "auth/invalid-credential") {
-          ToastAndroid.show("Wrong password", ToastAndroid.SHORT);
+        } else if (errorCode === "auth/wrong-password") {
+          ToastAndroid.show("Wrong password", ToastAndroid.SHORT); // Updated error code for wrong password
         } else {
           ToastAndroid.show(errorMessage, ToastAndroid.SHORT);
         }
@@ -51,7 +47,8 @@ export default function SignIn() {
       ToastAndroid.show("Please enter your email", ToastAndroid.SHORT);
       return;
     }
-    sendPasswordResetEmail(auth, email)
+    auth()
+      .sendPasswordResetEmail(email) // Call sendPasswordResetEmail directly
       .then(() => {
         ToastAndroid.show("Password reset email sent", ToastAndroid.SHORT);
       })
