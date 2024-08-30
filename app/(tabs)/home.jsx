@@ -5,108 +5,67 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  TextInput,
   Dimensions,
   ScrollView,
   FlatList,
   Vibration,
 } from "react-native";
-import { auth, db } from "../../configs/FirebaseConfigs";
+import { auth } from "../../configs/FirebaseConfigs"; // Removed 'db' as it's not used in this snippet
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import ScreenWrapper from "../../components/screenwrapper";
 import { Colors } from "../../constants/Colors";
-import { generateSuggestions } from "../../configs/GeminiAPI";
+import { generateNotes } from "../../configs/GeminiAPI";
 import { useNotes } from "../../context/context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import Clipboard from "expo-clipboard"; // Corrected import
 import Markdown from "react-native-markdown-display";
 import { BlurView } from "expo-blur";
 import RenderHtml from "react-native-render-html";
-import { collection, getDocs } from "firebase/firestore";
-
-const SUGGESTIONS_KEY = "suggestions";
-const TIMESTAMP_KEY = "suggestions_timestamp";
-const TIME_LIMIT = 1000 * 60 * 60; // 1 hour
 
 export default function Home() {
-  const [todos, setTodos] = useState([]);
-  const [suggestions, setSuggestions] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [todos, setTodos] = useState([]); // todos is declared but not used in this code snippet
+  const [toGenerateAi, setToGenerateAi] = useState("");
+  const [generatedNotes, setGeneratedNotes] = useState("");
+  const [loading, setLoading] = useState(false); // Initial loading should be false
+  const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
   const { notes, fetchNotes } = useNotes();
-  const user = auth.currentUser;
+  const userId = auth.currentUser?.uid;
   const vibrationPattern = 100; // Duration in milliseconds
-  const userId = auth.currentUser?.uid; // Get the currently logged-in user's ID
+
+  const copyToClipboard = () => {
+    Clipboard.setStringAsync(generatedNotes);
+    Vibration.vibrate(50); // Provide feedback when text is copied
+  };
 
   useEffect(() => {
-    const fetchTodos = async () => {
-      if (!userId) return;
-
-      try {
-        // Fetch from AsyncStorage
-        const storedTodos = await AsyncStorage.getItem(`todos_${userId}`);
-        if (storedTodos) {
-          setTodos(JSON.parse(storedTodos));
-        }
-      } catch (error) {
-        console.error("Error loading todos from local storage: ", error);
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setIsUserAuthenticated(true);
+      } else {
+        setIsUserAuthenticated(false);
+        router.replace("/auth/SignIn");
       }
+    });
 
-      // Fetch from Firestore
-      try {
-        const querySnapshot = await getDocs(
-          collection(db, `users/${userId}/todos`)
-        );
-        const todosList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setTodos(todosList);
-      } catch (error) {
-        console.error("Error loading todos from Firestore: ", error);
-      }
-    };
+    return () => unsubscribe(); // Clean up the listener
+  }, []);
 
-    fetchTodos();
-  }, [userId]);
+  const handlesubmit = async () => {
+    if (!toGenerateAi.trim()) return; // Prevent submitting empty input
 
-  useEffect(() => {
-    fetchNotes();
-    console.log(notes);
-  }, [router]);
-
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      const storedTimestamp = await AsyncStorage.getItem(TIMESTAMP_KEY);
-      const now = Date.now();
-
-      if (storedTimestamp && now - parseInt(storedTimestamp) < TIME_LIMIT) {
-        const storedSuggestions = await AsyncStorage.getItem(SUGGESTIONS_KEY);
-        if (storedSuggestions) {
-          setSuggestions(storedSuggestions);
-          setLoading(false);
-          return;
-        }
-      }
-
-      if (todos.length > 0) {
-        setLoading(true);
-        try {
-          const generatedSuggestions = await generateSuggestions(todos);
-          setSuggestions(generatedSuggestions);
-          await AsyncStorage.setItem(SUGGESTIONS_KEY, generatedSuggestions);
-          await AsyncStorage.setItem(TIMESTAMP_KEY, now.toString());
-        } catch (error) {
-          console.error("Failed to fetch suggestions:", error);
-          setSuggestions("Failed to fetch suggestions.");
-        } finally {
-          setLoading(false);
-        }
-      }
-
-      setLoading(false);
-    };
-
-    fetchSuggestions();
-  }, [todos]);
+    try {
+      setLoading(true);
+      const AInotes = await generateNotes(toGenerateAi);
+      setGeneratedNotes(AInotes);
+      setToGenerateAi(""); // Clear input after generating notes
+      Vibration.vibrate(vibrationPattern);
+    } catch (error) {
+      console.error("Error generating notes:", error);
+    } finally {
+      setLoading(false); // Ensure loading state is reset
+    }
+  };
 
   const favoriteNotes = notes.filter((note) => note.isFavorite);
 
@@ -135,8 +94,6 @@ export default function Home() {
     }),
     [contentWidth]
   );
-  console.log(suggestions);
-
   return (
     <ScreenWrapper>
       <View style={styles.container}>
@@ -144,71 +101,121 @@ export default function Home() {
           <Text style={styles.title}>Home</Text>
           <TouchableOpacity
             style={styles.profileImage}
-            onPress={() => router.push("/Profile/profile")}
+            onPress={() => router.push("/Profile/Account")}
           >
             <Ionicons
-              name="settings-outline"
+              name="person-circle-sharp"
               size={30}
               color={Colors.dark.text}
             />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.list}>
-          {loading ? (
-            <ActivityIndicator size="large" color={Colors.dark.text} />
-          ) : (
-            <View>
-              <BlurView intensity={20} style={styles.suggestionsContainer}>
+        <View style={styles.suggestionsWrapper}>
+          <BlurView intensity={20} style={styles.suggestionsContainer}>
+            {generatedNotes && (
+              <View>
+                <View style={styles.generatedtopbar}>
+                  <TouchableOpacity onPress={() => setGeneratedNotes("")}>
+                    <Ionicons
+                      name="close-outline"
+                      size={20}
+                      color={Colors.dark.text}
+                      style={styles.closeIcon}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={copyToClipboard}
+                    style={styles.copyButton}
+                  >
+                    <Ionicons
+                      name="copy-outline"
+                      size={20}
+                      color={Colors.dark.text}
+                    />
+                  </TouchableOpacity>
+                </View>
                 <ScrollView
                   showsVerticalScrollIndicator={false}
                   style={styles.suggestions}
                 >
-                  <Markdown style={markdownStyles}>{suggestions}</Markdown>
+                  <Markdown style={markdownStyles}>{generatedNotes}</Markdown>
                 </ScrollView>
-              </BlurView>
-
-              <Text style={styles.favoritesText}>Favorites</Text>
-              {favoriteNotes.length > 0 ? (
-                <FlatList
-                  showsVerticalScrollIndicator={false}
-                  data={favoriteNotes}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      onPress={() => {
-                        Vibration.vibrate(vibrationPattern);
-                        router.push(`../notes/NotesRender?noteId=${item.id}`);
-                      }}
-                    >
-                      <BlurView intensity={20} style={[styles.cardContainer]}>
-                        <Text style={styles.noteTitle}>{item.title}</Text>
-                        <RenderHtml
-                          tagsStyles={noteStyles}
-                          contentWidth={contentWidth}
-                          allowFontScaling={false}
-                          source={{ html: item.content }}
-                        />
-                        {item.isFavorite && (
-                          <Ionicons
-                            name="heart"
-                            size={15}
-                            color={Colors.Themecolor}
-                            style={styles.heartIcon}
-                          />
-                        )}
-                      </BlurView>
-                    </TouchableOpacity>
-                  )}
-                  keyExtractor={(item) => item.id}
-                  style={styles.list}
-                  numColumns={2}
+              </View>
+            )}
+            <View style={styles.searchContainer}>
+              {loading ? (
+                <ActivityIndicator
+                  style={styles.loading}
+                  size="small"
+                  color="white"
                 />
               ) : (
-                <Text>No favorite notes available.</Text>
+                <TextInput
+                  placeholder="Ask Noti any question"
+                  placeholderTextColor={Colors.dark.text}
+                  style={styles.searchInput}
+                  onChangeText={(value) => setToGenerateAi(value)}
+                />
               )}
+              <TouchableOpacity
+                onPress={() => {
+                  Vibration.vibrate(50);
+                  setLoading(true);
+                  handlesubmit(toGenerateAi);
+                }}
+              >
+                <Ionicons name="send" size={20} color={Colors.dark.text} />
+              </TouchableOpacity>
             </View>
-          )}
+          </BlurView>
         </View>
+        <Text style={styles.favoritesText}>Favorites</Text>
+        {favoriteNotes.length > 0 ? (
+          <FlatList
+            showsVerticalScrollIndicator={false}
+            data={favoriteNotes}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => {
+                  Vibration.vibrate(vibrationPattern);
+                  router.push({
+                    pathname: "../notes/NotesRender",
+                    params: { noteId: item.id },
+                  });
+                }}
+              >
+                <BlurView intensity={20} style={styles.cardContainer}>
+                  <Text style={styles.noteTitle}>{item.title}</Text>
+                  <RenderHtml
+                    tagsStyles={noteStyles}
+                    contentWidth={contentWidth}
+                    allowFontScaling={false}
+                    source={{ html: item.content }}
+                  />
+                  <Text style={styles.date}>
+                    {item.updatedAt
+                      ? new Date(item.updatedAt.seconds * 1000).toLocaleString()
+                      : "No date"}
+                  </Text>
+                  {item.isFavorite && (
+                    <Ionicons
+                      name="heart"
+                      size={15}
+                      color={Colors.Themecolor}
+                      style={styles.heartIcon}
+                    />
+                  )}
+                </BlurView>
+              </TouchableOpacity>
+            )}
+            keyExtractor={(item) => item.id}
+            style={styles.list}
+            numColumns={2}
+          />
+        ) : (
+          <Text>No favorite notes available.</Text>
+        )}
       </View>
     </ScreenWrapper>
   );
@@ -217,8 +224,51 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // padding: 10,
-    backgroundColor: Colors.background,
+    marginBottom: 60, // Adjusted to ensure it doesn't overlap with the tab bar
+    // overflow: "hidden",
+  },
+  generatedtopbar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 5,
+    marginTop: 10,
+  },
+  copyButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  copyText: {
+    color: Colors.dark.text,
+    marginLeft: 5,
+    fontSize: 16,
+  },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  closeIcon: {
+    // position: "absolute",
+    // top: 20,
+    // right: 10,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 10,
+  },
+  suggestionsWrapper: {
+    // flex: 1,
+    marginTop: 10,
+  },
+  searchInput: {
+    width: "80%",
+    fontSize: 16,
+    color: Colors.dark.text,
   },
   header: {
     flexDirection: "row",
@@ -230,12 +280,12 @@ const styles = StyleSheet.create({
   suggestions: {
     paddingVertical: 10,
     paddingHorizontal: 5,
-    // paddingBottom: 80,
+    paddingBottom: 200,
   },
   title: {
     fontSize: 50,
     marginBottom: 10,
-    fontFamily: "outfit-Bold",
+    fontWeight: "bold",
     color: Colors.dark.text,
   },
   profileImage: {
@@ -245,17 +295,21 @@ const styles = StyleSheet.create({
   list: {
     marginTop: 10,
   },
+  listContent: {
+    paddingBottom: 80, // Adds extra space to prevent overlap with the tab bar
+  },
   favoritesText: {
     fontSize: 30,
     fontWeight: "bold",
     color: Colors.dark.text,
     marginTop: 10,
+    marginLeft: 10,
   },
   suggestionsContainer: {
     padding: 10,
     borderRadius: 20,
     overflow: "hidden",
-    maxHeight: Dimensions.get("window").height / 2 - 20,
+    maxHeight: Dimensions.get("window").height / 2 - 150,
   },
   cardContainer: {
     flex: 1,
@@ -279,23 +333,21 @@ const styles = StyleSheet.create({
     top: 10,
     right: 10,
   },
-  markdown: {
-    body: {
-      color: Colors.dark.content_text,
-      fontSize: 14,
-      fontFamily: "outfit-Regular",
-      borderBottomColor: Colors.dark.text,
-      height: Dimensions.get("window").width / 2 - 95,
-      overflow: "hidden",
-      alignContent: "center",
-    },
+  date: {
+    fontSize: 12,
+    color: Colors.dark.content_text,
+    marginTop: 7,
+    marginLeft: 2,
   },
 });
+
 const markdownStyles = {
   body: {
     color: Colors.dark.content_text,
     fontSize: 16,
     lineHeight: 24,
+    marginBottom: 40,
+    userSelect: "text",
   },
   heading1: {
     color: "white",

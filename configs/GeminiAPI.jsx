@@ -1,10 +1,6 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
-if (!apiKey) {
-  console.error("API key is missing");
-  process.exit(1);
-}
+const apiKey = "AIzaSyDlnzwRPsEzpEgYJqO1aWuNiHlAmUCTr_g";
 
 const genAI = new GoogleGenerativeAI(apiKey);
 
@@ -13,14 +9,13 @@ const model = genAI.getGenerativeModel({
 });
 
 const generationConfig = {
-  temperature: 0.7, // Adjust temperature to balance creativity and coherence
-  topP: 0.9, // Adjust topP for more diverse responses
-  topK: 50, // Adjust topK to limit the number of choices considered
-  maxOutputTokens: 200, // Limit the output to a reasonable length
-  responseMimeType: "text/plain",
+  temperature: 0.7,
+  topP: 0.9,
+  topK: 50,
+  maxOutputTokens: 200,
 };
 
-async function generateSuggestions(todos) {
+async function generateNotes(userInput) {
   try {
     const chatSession = model.startChat({
       generationConfig,
@@ -29,28 +24,21 @@ async function generateSuggestions(todos) {
           role: "user",
           parts: [
             {
-              text: `Here are some tasks: ${todos
-                .map((todo) => todo.task)
-                .join(
-                  ", "
-                )}. Can you provide some general task management tips?`,
+              text: userInput, // Use user input directly
             },
           ],
         },
       ],
     });
 
-    const result = await chatSession.sendMessage(
-      "Generate general task management suggestions."
-    );
-    const suggestions = result.response.text().trim(); // Trim any leading or trailing whitespace
+    const result = await chatSession.sendMessage("Generate notes.");
+    const suggestions = (await result.response.text()).trim();
 
-    // Return the suggestions directly
     return suggestions || "No suggestions available.";
   } catch (error) {
-    console.error("Error generating suggestions:", error);
+    console.error("Error generating suggestions:", error.message);
     return "Failed to generate suggestions.";
   }
 }
 
-module.exports = { generateSuggestions };
+module.exports = { generateNotes };
